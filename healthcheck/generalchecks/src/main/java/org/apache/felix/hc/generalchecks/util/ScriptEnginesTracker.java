@@ -49,8 +49,8 @@ public class ScriptEnginesTracker implements BundleListener {
     static final String META_INF_SERVICES = "META-INF/services";
     static final String FACTORY_NAME = ScriptEngineFactory.class.getName();
     private static final String ENGINE_FACTORY_SERVICE = String.format("%s/%s", META_INF_SERVICES, FACTORY_NAME);
-    private final Map<String, ScriptEngineFactory> enginesByLanguage = new ConcurrentHashMap<String, ScriptEngineFactory>();
-    private final Map<Bundle, List<String>> languagesByBundle = new ConcurrentHashMap<Bundle, List<String>>();
+    private final Map<String, ScriptEngineFactory> enginesByLanguage = new ConcurrentHashMap<>();
+    private final Map<Bundle, List<String>> languagesByBundle = new ConcurrentHashMap<>();
 
     /** ServiceTracker for ScriptEngineFactory */
     private BundleContext context;
@@ -76,8 +76,7 @@ public class ScriptEnginesTracker implements BundleListener {
             return null;
         }
         
-        ScriptEngine engine = factory.getScriptEngine();
-        return engine;
+        return factory.getScriptEngine();
     }
 
     public Map<Bundle, List<String>> getLanguagesByBundle() {
@@ -123,13 +122,11 @@ public class ScriptEnginesTracker implements BundleListener {
 
     @SuppressWarnings("unchecked")
     private List<ScriptEngineFactory> getScriptEngineFactoriesForBundle(final Bundle bundle) {
-        List<ScriptEngineFactory> scriptEngineFactoriesInBundle = new ArrayList<ScriptEngineFactory>();
+        List<ScriptEngineFactory> scriptEngineFactoriesInBundle = new ArrayList<>();
         Enumeration<URL> foundEntries = bundle.findEntries(META_INF_SERVICES, FACTORY_NAME, false);
         while (foundEntries != null && foundEntries.hasMoreElements()) {
             URL url = foundEntries.nextElement();
-            InputStream ins = null;
-            try {
-                ins = url.openStream();
+            try (InputStream ins = url.openStream();) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
                 for (String className : getClassNames(reader)) {
                     try {
@@ -137,29 +134,17 @@ public class ScriptEnginesTracker implements BundleListener {
                         ScriptEngineFactory spi = clazz.getDeclaredConstructor().newInstance();
                         scriptEngineFactoriesInBundle.add(spi);
                         
-                    } catch (Throwable t) {
-                        LOG.error("Cannot register ScriptEngineFactory {}", className, t);
+                    } catch (Exception e) {
+                        LOG.error("Cannot register ScriptEngineFactory {}", className, e);
                     }
                 }
 
             } catch (IOException ioe) {
                 LOG.warn("Exception while trying to load factories as defined in {}", ENGINE_FACTORY_SERVICE, ioe);
-            } finally {
-                closeQuietly(ins);
             }
         }
         
         return scriptEngineFactoriesInBundle;
-    }
-
-    private void closeQuietly(InputStream ins) {
-        if (ins != null) {
-            try {
-                ins.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
     }
 
     private void registerFactory(Bundle bundle, final ScriptEngineFactory factory) {

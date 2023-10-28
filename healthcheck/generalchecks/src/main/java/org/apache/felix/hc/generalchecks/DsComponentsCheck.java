@@ -91,7 +91,7 @@ public class DsComponentsCheck implements HealthCheck {
     private final AtomicReference<Result> cache = new AtomicReference<>();
 
     @Activate
-    public void activate(final BundleContext ctx, final Config config) throws InterruptedException {
+    public void activate(final BundleContext ctx, final Config config) {
         componentsList = Arrays.asList(config.components_list());
         statusForMissing = config.statusForMissing();
         this.refreshCache.set(false); // cache is empty
@@ -119,12 +119,12 @@ public class DsComponentsCheck implements HealthCheck {
         Collection<ComponentDescriptionDTO> componentDescriptionDTOs = null;
         try {
             componentDescriptionDTOs = scr.getComponentDescriptionDTOs();
-        } catch ( final Throwable e) {
+        } catch ( final Exception e) {
             log.temporarilyUnavailable("Exception while getting ds component dtos {}", e.getMessage(), e);
         }
         if ( componentDescriptionDTOs != null ) {
-            final List<ComponentDescriptionDTO> watchedComps = new LinkedList<ComponentDescriptionDTO>();
-            final List<String> missingComponents = new LinkedList<String>(componentsList);
+            final List<ComponentDescriptionDTO> watchedComps = new LinkedList<>();
+            final List<String> missingComponents = new LinkedList<>(componentsList);
             for (final ComponentDescriptionDTO desc : componentDescriptionDTOs) {
                 if (componentsList.contains(desc.name)) {
                     watchedComps.add(desc);
@@ -163,7 +163,7 @@ public class DsComponentsCheck implements HealthCheck {
                             countDisabled++;
                             isActive = false;
                         }
-                    } catch ( final Throwable e) {
+                    } catch ( final Exception e) {
                         log.temporarilyUnavailable("Exception while getting ds component dtos {}", e.getMessage(), e);
                         isActive = true; // no info available, doesn't make sense to report as inactive
                     }
@@ -209,7 +209,7 @@ public class DsComponentsCheck implements HealthCheck {
         }
     }
 
-    @Reference(name = "scr", updated = "updatedServiceComponentRuntime")
+    @Reference(name = "scr", updated = "updatedServiceComponentRuntime",policyOption = ReferencePolicyOption.GREEDY)
     private void setServiceComponentRuntime(final ServiceComponentRuntime c) {
         this.scr = c;
     }

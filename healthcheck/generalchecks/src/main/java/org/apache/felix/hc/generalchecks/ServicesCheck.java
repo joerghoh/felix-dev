@@ -34,6 +34,7 @@ import org.apache.felix.hc.api.HealthCheck;
 import org.apache.felix.hc.api.Result;
 import org.apache.felix.hc.api.ResultLog.Entry;
 import org.apache.felix.hc.generalchecks.scrutil.DsRootCauseAnalyzer;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -133,7 +134,7 @@ public class ServicesCheck implements HealthCheck {
         return new Result(log);
     }
 
-    private Collection<ComponentDescriptionDTO> getDTOs(List<String> missingServiceNames, FormattingResultLog log) {
+    private @Nullable Collection<ComponentDescriptionDTO> getDTOs(List<String> missingServiceNames, FormattingResultLog log) {
         boolean needsDTOs = false;
         for (String missingServiceName : missingServiceNames) {
             if (!missingServiceName.startsWith("(")) {
@@ -144,7 +145,7 @@ public class ServicesCheck implements HealthCheck {
         if ( needsDTOs ) {
             try {
                 return scr.getComponentDescriptionDTOs();
-            } catch ( final Throwable e) {
+            } catch ( final Exception e) {
                 log.temporarilyUnavailable("Exception while getting ds component dtos {}", e.getMessage(), e);
             }
         }

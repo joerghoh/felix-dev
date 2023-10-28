@@ -66,24 +66,24 @@ public class SimpleConstraintChecker {
         }
         
         if (parts[0].equals(GREATER_THAN) && parts.length == 2) {
-            long value = Long.valueOf(stringValue).longValue();
+            long value = Long.parseLong(stringValue);
             matches = value > Long.valueOf(parts[1]);
 
         } else if (parts[0].equals(LESS_THAN) && parts.length == 2) {
-            long value = Long.valueOf(stringValue).longValue();
+            long value = Long.parseLong(stringValue);
             matches = value < Long.valueOf(parts[1]);
 
         } else if (parts[0].equals(EQUALS) && parts.length == 2) {
             Long longValue;
             if((longValue = getLongObject(stringValue)) != null) {
-                matches = longValue.longValue() == Long.valueOf(parts[1]).longValue();
+                matches = longValue.longValue() == Long.parseLong(parts[1]);
             } else {
                 matches = stringValue.equals(parts[1]);
             }
         } else if (parts.length == 4 && BETWEEN.equalsIgnoreCase(parts[0]) && AND.equalsIgnoreCase(parts[2])) {
-            long value = Long.valueOf(stringValue).longValue();
-            long lowerBound = Long.valueOf(parts[1]).longValue();
-            long upperBound = Long.valueOf(parts[3]).longValue();
+            long value = Long.parseLong(stringValue);
+            long lowerBound = Long.parseLong(parts[1]);
+            long upperBound = Long.parseLong(parts[3]);
             matches = value > lowerBound && value < upperBound;
 
         } else if (parts.length > 1 && CONTAINS.equalsIgnoreCase(parts[0])) {
@@ -100,8 +100,8 @@ public class SimpleConstraintChecker {
             matches = stringValue.matches(pattern);
         } else if (parts.length > 1 && OLDER_THAN.equalsIgnoreCase(parts[0]) && parts.length == 3) {
             int unit = stringToUnit(parts[2]);
-            long timestamp = Long.valueOf(stringValue).longValue();
-            int timeDiff = Integer.valueOf(parts[1]).intValue();
+            long timestamp = Long.parseLong(stringValue);
+            int timeDiff = Integer.parseInt(parts[1]);
             
             Calendar cal = Calendar.getInstance();
             cal.add(unit, -timeDiff);
@@ -113,8 +113,7 @@ public class SimpleConstraintChecker {
             matches = String.join("", parts).equals(stringValue);
         }
 
-        boolean result = matches ^ inverseResult;
-        return result;
+        return matches ^ inverseResult;
 
     }
 

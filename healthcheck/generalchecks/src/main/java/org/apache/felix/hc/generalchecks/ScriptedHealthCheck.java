@@ -34,6 +34,8 @@ import org.apache.felix.hc.api.Result;
 import org.apache.felix.hc.core.impl.util.lang.StringUtils;
 import org.apache.felix.hc.generalchecks.util.ScriptEnginesTracker;
 import org.apache.felix.hc.generalchecks.util.ScriptHelper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
@@ -107,12 +109,12 @@ public class ScriptedHealthCheck implements HealthCheck {
         this.scriptUrl = config.scriptUrl();
 
         if(StringUtils.isNotBlank(script) && StringUtils.isNotBlank(scriptUrl)) {
-            LOG.info("Both 'script' and 'scriptUrl' (=()) are configured, ignoring 'scriptUrl'", scriptUrl);
+            LOG.info("Both 'script' and 'scriptUrl' (={}) are configured, ignoring 'scriptUrl'", scriptUrl);
             scriptUrl = null;
         }
 
-        LOG.debug("Activated Scripted HC "+config.hc_name()+" with "+ (StringUtils.isNotBlank(script)?"script "+script: "script url "+scriptUrl));
-
+        String out = StringUtils.isNotBlank(script) ? "script "+script : "script url "+scriptUrl;
+        LOG.debug("Activated Scripted HC {} with {}", config.hc_name(), out);
     }
 
     @Override
@@ -137,7 +139,8 @@ public class ScriptedHealthCheck implements HealthCheck {
             log.info("Executing script {} ({} lines)...", (urlIsUsed?scriptUrl:" as configured"), scriptToExecute.split("\n").length);
             
             ScriptEngine scriptEngine = scriptHelper.getScriptEngine(scriptEnginesTracker, language);
-            scriptHelper.evalScript(bundleContext, scriptEngine, scriptToExecute, log, optionalSlingContext.getAdditionalBindings(), true);
+            scriptHelper.evalScript(bundleContext, scriptEngine, scriptToExecute, log, 
+                    optionalSlingContext.getAdditionalBindings(), true);
         } catch(IllegalStateException e) {
             log.temporarilyUnavailable(e.getMessage()); // e.g. due to missing service during startup
         }  catch (Exception e) {
@@ -223,9 +226,10 @@ public class ScriptedHealthCheck implements HealthCheck {
             }
         }
 
-        Map<String, Object> getAdditionalBindings() {
+        @NotNull Map<String, Object> getAdditionalBindings() {
+            Map<String, Object> additionalBindings = new HashMap<>();
             if (resourceResolver != null) {
-                Map<String, Object> additionalBindings = new HashMap<>();
+                
                 additionalBindings.put(BINDING_KEY_RESOURCE_RESOLVER, resourceResolver);
                 try {
                     Object session = resourceResolver.getClass().getMethod(METHOD_ADAPT_TO, Class.class)
@@ -236,7 +240,7 @@ public class ScriptedHealthCheck implements HealthCheck {
                 }
                 return additionalBindings;
             } else {
-                return null;
+                return additionalBindings;
             }
         }
 

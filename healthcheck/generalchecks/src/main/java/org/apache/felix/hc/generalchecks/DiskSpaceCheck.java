@@ -108,9 +108,13 @@ public class DiskSpaceCheck implements HealthCheck {
                     usedPercentage,
                     totalStr, freeStr);
 
-            Result.Status status = usedPercentage > this.diskUsedThresholdCritical ? Result.Status.CRITICAL
-                    : usedPercentage > this.diskUsedThresholdWarn ? Result.Status.WARN
-                            : Result.Status.OK;
+            Result.Status status = Result.Status.OK;
+            if (usedPercentage > this.diskUsedThresholdWarn) {
+                status = Result.Status.WARN;
+            }
+            if (usedPercentage > this.diskUsedThresholdCritical) {
+                status = Result.Status.CRITICAL;
+            }
 
             log.add(new ResultLog.Entry(status, msg));
 

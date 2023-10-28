@@ -27,7 +27,6 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -202,18 +201,18 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     private List<RequestSpec> getRequestSpecs(String[] requestSpecStrArr) {
-        List<RequestSpec> requestSpecs = new ArrayList<RequestSpec>();
+        List<RequestSpec> specs = new ArrayList<>();
         for(String requestSpecStr: requestSpecStrArr) {
             try {
                 RequestSpec requestSpec = new RequestSpec(requestSpecStr);
-                requestSpecs.add(requestSpec);
+                specs.add(requestSpec);
             } catch(Exception e) {
                 configErrors.critical("Invalid config: {}", requestSpecStr);
                 configErrors.add(new ResultLog.Entry(Result.Status.CRITICAL, " "+e.getMessage(), e));
             }
 
         }
-        return requestSpecs;
+        return specs;
     }
 
     static class RequestSpec {
@@ -222,7 +221,7 @@ public class HttpRequestsCheck implements HealthCheck {
 
         String method = "GET";
         String url;
-        Map<String,String> headers = new HashMap<String,String>();
+        Map<String,String> headers = new HashMap<>();
         String data = null;
 
         String user;
@@ -232,7 +231,7 @@ public class HttpRequestsCheck implements HealthCheck {
 
         Proxy proxy;
 
-        List<ResponseCheck> responseChecks = new ArrayList<ResponseCheck>();
+        List<ResponseCheck> responseChecks = new ArrayList<>();
 
         RequestSpec(String requestSpecStr) throws ParseException, URISyntaxException {
 
@@ -346,7 +345,7 @@ public class HttpRequestsCheck implements HealthCheck {
         }
 
         String[] splitArgsRespectingQuotes(String requestInfo) {
-            List<String> argList = new ArrayList<String>();
+            List<String> argList = new ArrayList<>();
             Pattern regex = Pattern.compile("[^\\s\"']+|\"[^\"]*\"|'[^']*'");
             Matcher regexMatcher = regex.matcher(requestInfo);
             while (regexMatcher.find()) {
@@ -376,7 +375,7 @@ public class HttpRequestsCheck implements HealthCheck {
             }
 
             if(response != null) {
-                List<String> resultBits = new ArrayList<String>();
+                List<String> resultBits = new ArrayList<>();
                 boolean hasFailed = false;
                 for(ResponseCheck responseCheck: responseChecks) {
                     ResponseCheck.ResponseCheckResult result = responseCheck.checkResponse(response, log);
@@ -415,7 +414,7 @@ public class HttpRequestsCheck implements HealthCheck {
         }
 
         private HttpURLConnection openConnection(int defaultConnectTimeoutInMs, int defaultReadTimeoutInMs, URL effectiveUrl, FormattingResultLog log)
-                throws IOException, ProtocolException {
+                throws IOException {
             HttpURLConnection conn;
             conn = (HttpURLConnection) (proxy==null ? effectiveUrl.openConnection() : effectiveUrl.openConnection(proxy));
             conn.setInstanceFollowRedirects(false);
@@ -462,9 +461,7 @@ public class HttpRequestsCheck implements HealthCheck {
             }
 
             long requestDurationInMs = System.currentTimeMillis() - startTime;
-            Response response = new Response(actualResponseCode, actualResponseMessage, responseHeaders, responseEntityWriter.toString(), requestDurationInMs);
-
-            return response;
+            return new Response(actualResponseCode, actualResponseMessage, responseHeaders, responseEntityWriter.toString(), requestDurationInMs);
         }
 
     }
@@ -523,7 +520,7 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     static class ResponseCodeConstraintCheck implements ResponseCheck {
-        final static String CODE = "CODE ";
+        static final String CODE = "CODE ";
         private final String codeConstraint;
         private final SimpleConstraintChecker simpleConstraintChecker;
 
@@ -544,7 +541,7 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     static class ResponseTimeCheck implements ResponseCheck {
-        final static String TIME = "TIME ";
+        static final String TIME = "TIME ";
 
         private final String timeConstraint;
 
@@ -567,7 +564,7 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     static class ResponseEntityRegExCheck implements ResponseCheck {
-        final static String MATCHES = "MATCHES ";
+        static final String MATCHES = "MATCHES ";
 
         private final Pattern expectedResponseEntityRegEx;
 
@@ -586,7 +583,7 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     static class ResponseHeaderCheck implements ResponseCheck {
-        final static String HEADER = "HEADER ";
+        static final String HEADER = "HEADER ";
 
         private final String headerName;
         private final String headerConstraint;
@@ -616,7 +613,7 @@ public class HttpRequestsCheck implements HealthCheck {
     }
 
     static class JsonPropertyCheck implements ResponseCheck {
-        final static String JSON = "JSON ";
+        static final String JSON = "JSON ";
 
         private final String jsonPropertyPath;
         private final String jsonPropertyConstraint;

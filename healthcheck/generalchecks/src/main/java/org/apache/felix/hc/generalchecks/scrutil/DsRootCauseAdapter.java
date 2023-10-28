@@ -55,11 +55,9 @@ public class DsRootCauseAdapter {
     }
 
     private void logRootCause(FormattingResultLog log, DSComp component) {
-        new RootCausePrinter(new Consumer<String>() {
-            @Override
-            public void accept(String str) {
-                log.add(new Entry(Status.OK, str.replaceFirst("    ", "-- ").replaceFirst("  ", "- ")));
-            }
-        }).print(component);
+        
+        new RootCausePrinter(str -> 
+            log.add(new Entry(Status.OK, str.replaceFirst(" {4}", "-- ").replaceFirst(" {2}", "- ")))
+        ).print(component);
     }
 }

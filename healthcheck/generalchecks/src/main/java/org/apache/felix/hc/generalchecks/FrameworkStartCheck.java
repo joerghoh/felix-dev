@@ -75,7 +75,7 @@ public class FrameworkStartCheck implements HealthCheck {
     private String beginningStartLevel;
 
     @Activate
-    protected void activate(final BundleContext ctx, final Config config) throws InterruptedException {
+    protected void activate(final BundleContext ctx, final Config config) {
         this.bundleContext = ctx;
         this.targetStartLevel = getTargetStartLevel(config);
         this.beginningStartLevel = getBeginningStartLevel();
@@ -103,8 +103,7 @@ public class FrameworkStartCheck implements HealthCheck {
 
 
     private String getBeginningStartLevel() {
-        String beginningStartLevel = StringUtils.defaultIfBlank(bundleContext.getProperty(PROP_START_LEVEL_BEGINNING), "<unknown>");
-        return beginningStartLevel;
+        return StringUtils.defaultIfBlank(bundleContext.getProperty(PROP_START_LEVEL_BEGINNING), "<unknown>");
     }
 
     @Override

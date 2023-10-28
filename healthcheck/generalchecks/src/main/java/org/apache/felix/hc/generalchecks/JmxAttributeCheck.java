@@ -107,7 +107,7 @@ public class JmxAttributeCheck implements HealthCheck {
         try {
             final MBeanServer jmxServer = ManagementFactory.getPlatformMBeanServer();
             final ObjectName objectName = new ObjectName(attributeConstraintConfig.mbeanName);
-            if (jmxServer.queryNames(objectName, null).size() == 0) {
+            if (jmxServer.queryNames(objectName, null).isEmpty()) {
                 resultLog.warn("MBean not found: {}", objectName);
             } else {
                 final Object value = jmxServer.getAttribute(objectName, attributeConstraintConfig.attributeName);
@@ -136,7 +136,7 @@ public class JmxAttributeCheck implements HealthCheck {
         public static final String SUFFIX_VALUE_CONSTRAINT = ".value.constraint";
 
         private static List<AttributeConstraintConfig> load(final Config config, final Map<String, Object> rawConfig) {
-            List<AttributeConstraintConfig> attributeConstraintConfigs = new ArrayList<AttributeConstraintConfig>();
+            List<AttributeConstraintConfig> attributeConstraintConfigs = new ArrayList<>();
 
             // first attribute via metatype
             attributeConstraintConfigs.add(new AttributeConstraintConfig(config.mbean_name(), config.attribute_name(),config.attribute_value_constraint()));

@@ -133,7 +133,7 @@ public class ThreadUsageCheck implements HealthCheck {
 
     List<ThreadTimeInfo> collectThreadTimeInfos(FormattingResultLog log, ThreadMXBean threadMxBean) {
 
-        Map<Long, ThreadTimeInfo> threadTimeInfos = new HashMap<Long, ThreadTimeInfo>();
+        Map<Long, ThreadTimeInfo> threadTimeInfos = new HashMap<>();
 
         long[] allThreadIds = threadMxBean.getAllThreadIds();
         for (long threadId : allThreadIds) {
@@ -160,9 +160,7 @@ public class ThreadUsageCheck implements HealthCheck {
             threadTimeInfo.stop = threadCpuTimeStop;
         }
 
-        List<ThreadTimeInfo> threads = new ArrayList<ThreadTimeInfo>(threadTimeInfos.values());
-
-        return threads;
+        return new ArrayList<>(threadTimeInfos.values());
     }
 
     void checkForDeadlock(FormattingResultLog log, ThreadMXBean threadMxBean) {
@@ -194,5 +192,23 @@ public class ThreadUsageCheck implements HealthCheck {
             }
             return (int) (otherThreadTimeInfo.getCpuTime() - this.getCpuTime());
         }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+            if (o instanceof ThreadTimeInfo) {
+                ThreadTimeInfo t = (ThreadTimeInfo) o;
+                if (!this.name.equals(t.name)) {
+                    return false;
+                }
+                return this.getCpuTime() == t.getCpuTime();
+                
+            } else {
+                return false;
+            }
+        }
+        
     }
 }

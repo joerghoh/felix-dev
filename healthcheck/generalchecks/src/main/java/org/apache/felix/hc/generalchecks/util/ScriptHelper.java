@@ -42,6 +42,7 @@ import org.apache.felix.hc.api.FormattingResultLog;
 import org.apache.felix.hc.api.Result;
 import org.apache.felix.hc.api.ResultLog;
 import org.apache.felix.hc.core.impl.util.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -59,7 +60,7 @@ public class ScriptHelper {
         }
     }
 
-    public ScriptEngine getScriptEngine(ScriptEnginesTracker scriptEnginesTracker, String language) {
+    public @NotNull ScriptEngine getScriptEngine(ScriptEnginesTracker scriptEnginesTracker, String language) {
         ScriptEngine scriptEngine = scriptEnginesTracker.getEngineByLanguage(language);
         if(scriptEngine == null) {
             throw new IllegalArgumentException("No ScriptEngineFactory found for language "+ language + " (available languages: "+scriptEnginesTracker.getLanguagesByBundle()+")");
@@ -67,7 +68,13 @@ public class ScriptHelper {
         return scriptEngine;
     }
     
-    public Object evalScript(BundleContext bundleContext, ScriptEngine scriptEngine, String scriptToExecute, FormattingResultLog log, Map<String,Object> additionalBindings, boolean logScriptResult) throws ScriptException, IOException {
+    public Object evalScript(@NotNull BundleContext bundleContext, 
+            @NotNull ScriptEngine scriptEngine, 
+            @NotNull String scriptToExecute, 
+            @NotNull FormattingResultLog log, 
+            @NotNull Map<String,Object> additionalBindings, 
+            boolean logScriptResult) 
+                    throws ScriptException, IOException {
 
         final Bindings bindings = new SimpleBindings();
         final ScriptHelperBinding scriptHelper = new ScriptHelperBinding(bundleContext);
@@ -79,10 +86,8 @@ public class ScriptHelper {
         bindings.put("osgi", scriptHelper); // also register script helper like in web console script console
         bindings.put("log", log);
         bindings.put("bundleContext", bundleContext);
-        if (additionalBindings != null) {
-            for (Map.Entry<String, Object> additionalBinding : additionalBindings.entrySet()) {
-                bindings.put(additionalBinding.getKey(), additionalBinding.getValue());
-            }
+        for (Map.Entry<String, Object> additionalBinding : additionalBindings.entrySet()) {
+            bindings.put(additionalBinding.getKey(), additionalBinding.getValue());
         }
         
         SimpleScriptContext scriptContext = new SimpleScriptContext();
