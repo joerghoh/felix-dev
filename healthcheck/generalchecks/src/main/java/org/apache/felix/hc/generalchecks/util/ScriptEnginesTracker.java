@@ -158,7 +158,7 @@ public class ScriptEnginesTracker implements BundleListener {
         
         List<String> languages = languagesByBundle.get(bundle);
         if(languages==null) {
-            languages = new ArrayList<String>();
+            languages = new ArrayList<>();
             languagesByBundle.put(bundle, languages);
         }
         languages.add(scriptLang);
@@ -166,7 +166,7 @@ public class ScriptEnginesTracker implements BundleListener {
 
 
     static List<String> getClassNames(BufferedReader reader) throws IOException {
-        List<String> classNames = new ArrayList<String>();
+        List<String> classNames = new ArrayList<>();
         String line;
         while ((line = reader.readLine()) != null) {
             if (!line.startsWith("#") && line.trim().length() > 0) {
