@@ -222,9 +222,9 @@ public final class WhiteboardManager
 
     /**
      * Handle session id changes
-     * @param session The session where the id changed
+     * @param event The session event
      * @param oldSessionId The old session id
-     * @param contextIds The context ids using that session
+     * @param contextNames The context names using that session
      */
     public void sessionIdChanged(@NotNull final HttpSessionEvent event, final String oldSessionId, final Set<String> contextNames)
     {
@@ -405,7 +405,7 @@ public final class WhiteboardManager
     /**
      * Remove a servlet context helper
      *
-     * @param The servlet context helper info
+     * @param info The servlet context helper info
      */
     public void removeContextHelper(final ServletContextHelperInfo info)
     {
@@ -470,34 +470,31 @@ public final class WhiteboardManager
     /**
      * Find the list of matching contexts for the whiteboard service
      */
-    private List<WhiteboardContextHandler> getMatchingContexts(final WhiteboardServiceInfo<?> info)
-    {
+    private List<WhiteboardContextHandler> getMatchingContexts(final WhiteboardServiceInfo<?> info) {
         final List<WhiteboardContextHandler> result = new ArrayList<>();
-        for(final List<WhiteboardContextHandler> handlerList : this.contextMap.values())
-        {
+        for(final List<WhiteboardContextHandler> handlerList : this.contextMap.values()) {
             final WhiteboardContextHandler h = handlerList.get(0);
-            // check whether the servlet context helper is visible to the whiteboard bundle
-            // see chapter 140.2
-            boolean visible = h.getContextInfo().getServiceId() < 0; // internal ones are always visible
-            if ( !visible )
-            {
-                final String filterString = "(" + Constants.SERVICE_ID + "=" + String.valueOf(h.getContextInfo().getServiceId()) + ")";
-                try
-                {
-                    final ServiceReference<?>[] col = info.getServiceReference().getBundle().getBundleContext().getServiceReferences(h.getContextInfo().getServiceType(), filterString);
-                    if ( col !=null && col.length > 0 )
-                    {
-                        visible = true;
+
+            // check if the context matches
+            final boolean matches = h.getContextInfo().match(info);
+            if (matches) {
+                // check whether the servlet context helper is visible to the whiteboard bundle
+                // see chapter 140.2
+                boolean visible = h.getContextInfo().getServiceId() < 0; // internal ones are always visible
+                if ( !visible ) {
+                    final String filterString = "(" + Constants.SERVICE_ID + "=" + String.valueOf(h.getContextInfo().getServiceId()) + ")";
+                    try {
+                        final ServiceReference<?>[] col = info.getServiceReference().getBundle().getBundleContext().getServiceReferences(h.getContextInfo().getServiceType(), filterString);
+                        if ( col !=null && col.length > 0 ) {
+                            visible = true;
+                        }
+                    } catch ( final InvalidSyntaxException ise ) {
+                        // we ignore this and treat it as an invisible service
                     }
                 }
-                catch ( final InvalidSyntaxException ise )
-                {
-                    // we ignore this and treat it as an invisible service
+                if ( visible ) {
+                    result.add(h);
                 }
-            }
-            if ( visible && h.getContextInfo().match(info) )
-            {
-                result.add(h);
             }
         }
         return result;
@@ -911,7 +908,7 @@ public final class WhiteboardManager
      *
      * @param req The request
      * @param res The response
-     * @return {@code true} to continue with dispatching, {@code false} to terminate the request.
+     * @param dispatcher The dispatcher
      * @throws IOException
      * @throws ServletException
      */
