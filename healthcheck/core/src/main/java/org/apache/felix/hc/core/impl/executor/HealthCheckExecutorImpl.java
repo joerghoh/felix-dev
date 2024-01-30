@@ -24,6 +24,7 @@ import static org.apache.felix.hc.core.impl.executor.HealthCheckExecutorImplConf
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,6 +84,8 @@ public class HealthCheckExecutorImpl implements ExtendedHealthCheckExecutor, Ser
     private long resultCacheTtlInMs;
 
     private String[] defaultTags;
+    
+    private Clock clock = Clock.systemUTC();
 
     private HealthCheckResultCache healthCheckResultCache = new HealthCheckResultCache();
 
@@ -205,12 +208,12 @@ public class HealthCheckExecutorImpl implements ExtendedHealthCheckExecutor, Ser
             HealthCheckExecutionOptions options) {
         
         long effectiveTimeout = getEffectiveTimeout(options);
-        final long startTime = System.currentTimeMillis();
+        final long startTime = clock.millis();
 
         final List<HealthCheckExecutionResult> results = new ArrayList<>();
         final List<HealthCheckMetadata> healthCheckDescriptors = getHealthCheckMetadata(healthCheckReferences);
 
-        final long intermediateTiming = System.currentTimeMillis();
+        final long intermediateTiming = clock.millis();
         
         createResultsForDescriptors(healthCheckDescriptors, results, options);
         
@@ -226,7 +229,7 @@ public class HealthCheckExecutorImpl implements ExtendedHealthCheckExecutor, Ser
 
         });
 
-        final long completionTime = System.currentTimeMillis();
+        final long completionTime = clock.millis();
 
         if (logger.isDebugEnabled()) {
             logger.debug("Time consumed for all checks: {}", msHumanReadable(completionTime - startTime));
@@ -380,7 +383,7 @@ public class HealthCheckExecutorImpl implements ExtendedHealthCheckExecutor, Ser
     private void waitForFuturesRespectingTimeout(final List<HealthCheckFuture> futuresForResultOfThisCall,
             HealthCheckExecutionOptions options) {
         
-        final long callExcutionStartTime = System.currentTimeMillis();
+        final long callExcutionStartTime = clock.millis();
         boolean allFuturesDone;
 
         long effectiveTimeout = getEffectiveTimeout(options);
@@ -402,7 +405,7 @@ public class HealthCheckExecutorImpl implements ExtendedHealthCheckExecutor, Ser
             for (final HealthCheckFuture healthCheckFuture : futuresForResultOfThisCall) {
                 allFuturesDone &= healthCheckFuture.isDone();
             }
-        } while (!allFuturesDone && (System.currentTimeMillis() - callExcutionStartTime) < effectiveTimeout);
+        } while (!allFuturesDone && (clock.millis() - callExcutionStartTime) < effectiveTimeout);
     }
 
     /** Collect the results from all futures
